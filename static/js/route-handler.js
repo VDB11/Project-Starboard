@@ -1,3 +1,21 @@
+function unwrapCoordinates(coords, startNearLon) {
+    if (coords.length === 0) return coords;
+    let firstLon = coords[0][1];
+    if (startNearLon !== undefined) {
+        while (firstLon - startNearLon > 180) firstLon -= 360;
+        while (startNearLon - firstLon > 180) firstLon += 360;
+    }
+    const result = [[coords[0][0], firstLon]];
+    for (let i = 1; i < coords.length; i++) {
+        let [lat, lon] = coords[i];
+        let prevLon = result[i - 1][1];
+        while (lon - prevLon > 180) lon -= 360;
+        while (prevLon - lon > 180) lon += 360;
+        result.push([lat, lon]);
+    }
+    return result;
+}
+
 const SEGMENT_COLORS = ["#0066ff", "#ff6600", "#00cc44", "#cc00ff", "#ff0033", "#00cccc", "#ffcc00"];
 
 document.getElementById('calculate-route').addEventListener('click', async function() {
@@ -23,11 +41,15 @@ document.getElementById('calculate-route').addEventListener('click', async funct
         }
 
         const allCoords = [];
+        let lastLon = undefined;
 
         data.segments.forEach((segment, i) => {
             const color = i === 0 ? '#0066ff' : SEGMENT_COLORS[i % SEGMENT_COLORS.length];
 
-            const line = L.polyline(segment.coordinates, {
+            const unwrapped = unwrapCoordinates(segment.coordinates, lastLon);
+            lastLon = unwrapped[unwrapped.length - 1][1];
+
+            const line = L.polyline(unwrapped, {
                 color: color,
                 weight: 4,
                 opacity: 0.8,
@@ -45,21 +67,25 @@ document.getElementById('calculate-route').addEventListener('click', async funct
                 { sticky: true, direction: 'top', opacity: 1.0 }
             );
 
-            // Increase hit tolerance so hover triggers near the line
             line.on('mouseover', function(e) { line.openTooltip(e.latlng); });
             line.on('mouseout',  function()  { line.closeTooltip(); });
 
             window.routeLayers.push(line);
-            allCoords.push(...segment.coordinates);
+            allCoords.push(...unwrapped);
 
             if (i === 0) {
-                addPortMarker(segment.from, 'green', 'Origin');
+                addPortMarker(segment.from, 'green', 'Origin', unwrapped[0][1]);
             }
 
             if (i === data.segments.length - 1) {
-                addPortMarker(segment.to, 'red', 'Destination');
+                const isRoundTrip = segment.to.port_name === data.segments[0].from.port_name;
+                if (isRoundTrip) {
+                    addPortMarker(segment.to, 'green', 'Origin / Destination', unwrapped[unwrapped.length - 1][1]);
+                } else {
+                    addPortMarker(segment.to, 'red', 'Destination', unwrapped[unwrapped.length - 1][1]);
+                }
             } else {
-                addPortMarker(segment.to, 'orange', `Stop ${i + 1}`);
+                addPortMarker(segment.to, 'orange', `Stop ${i + 1}`, unwrapped[unwrapped.length - 1][1]);
             }
         });
 
@@ -86,7 +112,7 @@ document.getElementById('calculate-route').addEventListener('click', async funct
     }
 });
 
-function addPortMarker(port, color, label) {
+function addPortMarker(port, color, label, nearLon) {
     const iconUrl = `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`;
     const icon = L.icon({
         iconUrl,
@@ -97,7 +123,13 @@ function addPortMarker(port, color, label) {
         shadowSize: [41, 41]
     });
 
-    const marker = L.marker([port.lat, port.lon], { icon })
+    let lon = port.lon;
+    if (nearLon !== undefined) {
+        while (lon - nearLon > 180) lon -= 360;
+        while (nearLon - lon > 180) lon += 360;
+    }
+
+    const marker = L.marker([port.lat, lon], { icon })
         .addTo(map)
         .bindPopup(`<strong>${label}</strong><br>${port.port_name}<br><small>${port.port_code || ''}</small>`);
 

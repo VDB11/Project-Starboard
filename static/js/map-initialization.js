@@ -3,7 +3,7 @@ const map = L.map('map', {
     zoom: 2,
     minZoom: 2,
     maxZoom: 18,
-    worldCopyJump: true
+    worldCopyJump: false
 });
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -11,7 +11,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     keepBuffer: 2,
     updateWhenIdle: true,
-    updateWhenZooming: false
+    updateWhenZooming: false,
+    noWrap: false
 }).addTo(map);
 
 const tileLayers = {
@@ -20,42 +21,48 @@ const tileLayers = {
         maxZoom: 19,
         keepBuffer: 2,
         updateWhenIdle: true,
-        updateWhenZooming: false
+        updateWhenZooming: false,
+        noWrap: false
     }),
     "OpenSeaMap": L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
         attribution: 'Map data: &copy; OpenSeaMap contributors',
         maxZoom: 18,
         keepBuffer: 2,
         updateWhenIdle: true,
-        updateWhenZooming: false
+        updateWhenZooming: false,
+        noWrap: false
     }),
     "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Esri, Maxar, Earthstar Geographics',
         maxZoom: 19,
         keepBuffer: 2,
         updateWhenIdle: true,
-        updateWhenZooming: false
+        updateWhenZooming: false,
+        noWrap: false
     }),
     "CartoDB Dark": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap contributors &copy; CartoDB',
         maxZoom: 20,
         keepBuffer: 2,
         updateWhenIdle: true,
-        updateWhenZooming: false
+        updateWhenZooming: false,
+        noWrap: false
     }),
     "CartoDB Voyager": L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap contributors &copy; CartoDB',
         maxZoom: 20,
         keepBuffer: 2,
         updateWhenIdle: true,
-        updateWhenZooming: false
+        updateWhenZooming: false,
+        noWrap: false
     }),
     "Ocean Depth": L.tileLayer('https://tiles.arcgis.com/tiles/C8EMgrsFcRFL6LrL/arcgis/rest/services/GEBCO_basemap_NCEI/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'GEBCO, NOAA NCEI',
         maxZoom: 13,
         keepBuffer: 2,
         updateWhenIdle: true,
-        updateWhenZooming: false
+        updateWhenZooming: false,
+        noWrap: false
     })
 };
 
