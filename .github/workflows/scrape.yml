@@ -1,0 +1,31 @@
+name: Web Scraper
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"  # every 5 minutes (GitHub minimum)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run scraper
+        run: python scraper.py
+
+      - name: Save output to repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add "scraped_*.txt"
+          git commit -m "Scraped at $(date)" || echo "No changes"
+          git push
