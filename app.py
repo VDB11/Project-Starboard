@@ -5,6 +5,7 @@ from scripts.searoutes import (
     get_ports, search_ports,
     calculate_full_route
 )
+from scripts.disasters import get_disasters_for_route, trigger_ingest_background
 
 app = Flask(__name__)
 
@@ -15,6 +16,7 @@ def index():
 @app.route("/api/water-bodies")
 def water_bodies():
     try:
+        trigger_ingest_background()
         return jsonify(get_water_bodies())
     except Exception as e:
         print(f"Error fetching water bodies: {e}")
@@ -90,6 +92,19 @@ def route():
         return jsonify(result)
     except Exception as e:
         print(f"Error calculating route: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/disasters", methods=["POST"])
+def disasters():
+    data = request.get_json()
+    segments = data.get("segments", [])
+    if not segments:
+        return jsonify({"error": "segments are required"}), 400
+    try:
+        result = get_disasters_for_route(segments)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error fetching disasters: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":

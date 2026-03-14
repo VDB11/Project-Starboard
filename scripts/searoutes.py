@@ -59,7 +59,7 @@ def get_port_coords(port_name, country_code, water_body):
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT lat, lon, port_name, port_code FROM public.wpi WHERE port_name = %s AND country_code = %s AND water_body = %s LIMIT 1",
+                "SELECT lat, lon, port_name, port_code, harbor_size, harbor_type, country_code FROM public.wpi WHERE port_name = %s AND country_code = %s AND water_body = %s LIMIT 1",
                 (port_name, country_code, water_body)
             )
             result = cur.fetchone()
