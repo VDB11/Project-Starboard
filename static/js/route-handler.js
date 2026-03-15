@@ -198,37 +198,56 @@ function renderDisasterSidebar(routeEvents) {
 }
 
 function buildPortPopup(port, label, portDisasters) {
-    const ICONS = { EQ: "🌍", TC: "🌀", FL: "🌊", VO: "🌋", DR: "☀️" };
+    const ICONS = { EQ: "🌐", TC: "🌀", FL: "🌧️", VO: "🌋", DR: "☀️" };
     const harborSize  = port.harbor_size  || "—";
     const harborType  = port.harbor_type  || "—";
+    const portCode    = port.port_code    || "—";
     const countryCode = port.country_code || "—";
 
-    const roleColors = { Origin: "#4CAF50", Destination: "#F44336" };
-    const headerColor = roleColors[label] || "#FF9800";
+    const headerColor = label === "Origin" ? "#2E7D32"
+                      : label === "Destination" ? "#F44336"
+                      : "#E65100";
 
-    let disasterHTML = "";
+    const rows = [
+        { icon: "🏗️", label: "Port name",   value: port.port_name },
+        { icon: "🏷️", label: "Port code",   value: portCode },
+        { icon: "📏", label: "Harbor size", value: harborSize },
+        { icon: "⚓", label: "Harbor type", value: harborType }
+    ];
+
+    const infoRows = rows.map(r => `
+        <div style="display:grid; grid-template-columns:30px 1fr; gap:10px; align-items:center; margin-bottom:8px;">
+            <div style="background:#f0f7ff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center;">
+                <span style="font-size:15px;">${r.icon}</span>
+            </div>
+            <div>
+                <div style="font-weight:600; color:#4a5568; font-size:12px;">${r.label}</div>
+                <div style="color:#2d3748; font-size:13px;">${r.value}</div>
+            </div>
+        </div>`).join('');
+
+    let alertsHTML = "";
     if (portDisasters && portDisasters.length > 0) {
         const sorted = [...portDisasters].sort((a, b) => {
             const o = { red: 0, orange: 1, green: 2 };
             return (o[a.alertlevel] ?? 3) - (o[b.alertlevel] ?? 3);
         });
-        const rows = sorted.map(ev => {
-            const color = ev.color || "#43A047";
-            const icon  = ICONS[ev.eventtype] || "⚠️";
-            return `
-                <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #f0f0f0;">
-                    <span style="font-size:18px; line-height:1;">${icon}</span>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:14px; font-weight:600; color:#222;">${ev.name || ev.eventtype_name}</div>
-                        <div style="font-size:12px; color:#888; margin-top:2px;">${ev.fromdate || ""}</div>
-                    </div>
-                    <span style="width:10px; height:10px; border-radius:50%; background:${color}; flex-shrink:0;"></span>
-                </div>`;
-        }).join("");
-        disasterHTML = `
+
+        const alertRows = sorted.map((ev, i) => `
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 0;
+                        ${i < sorted.length - 1 ? 'border-bottom:1px solid #f0f0f0;' : ''}">
+                <span style="font-size:18px; line-height:1; flex-shrink:0;">${ICONS[ev.eventtype] || "⚠️"}</span>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:14px; font-weight:600; color:#222;">${ev.name || ev.eventtype_name}</div>
+                    <div style="font-size:12px; color:#888; margin-top:2px;">${ev.fromdate || ""}</div>
+                </div>
+                <span style="width:10px; height:10px; border-radius:50%; background:${ev.color || "#43A047"}; flex-shrink:0;"></span>
+            </div>`).join('');
+
+        alertsHTML = `
             <div style="margin-top:12px; padding-top:10px; border-top:2px solid #f0f0f0;">
                 <div style="font-size:12px; font-weight:700; color:#e53935; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">⚠ Active Alerts Nearby</div>
-                ${rows}
+                ${alertRows}
             </div>`;
     }
 
@@ -239,17 +258,8 @@ function buildPortPopup(port, label, portDisasters) {
                 <div style="font-size:13px; color:rgba(255,255,255,0.85); margin-top:3px;">${label} · ${countryCode}</div>
             </div>
             <div style="padding:14px 16px;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                    <div>
-                        <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;">Harbor Size</div>
-                        <div style="font-size:15px; font-weight:700; color:#222;">${harborSize}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;">Harbor Type</div>
-                        <div style="font-size:15px; font-weight:700; color:#222;">${harborType}</div>
-                    </div>
-                </div>
-                ${disasterHTML}
+                ${infoRows}
+                ${alertsHTML}
             </div>
         </div>`;
 }

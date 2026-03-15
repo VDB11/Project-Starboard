@@ -1,10 +1,4 @@
-const DISASTER_ICONS = {
-    EQ: "🌍",
-    TC: "🌀",
-    FL: "🌊",
-    VO: "🌋",
-    DR: "☀️"
-};
+const DISASTER_ICONS = { EQ: "🌐", TC: "🌀", FL: "🌧️", VO: "🌋", DR: "☀️" };
 
 let disasterLayers = [];
 let hoverPopup = null;
