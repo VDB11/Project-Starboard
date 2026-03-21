@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Starboard</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: 'Roboto Slab', serif;
+    background: #000000;
+    color: #e5e7eb;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 50px 20px;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    text-align: center;
+}
+
+.logo {
+    width: 700px;
+    max-width: 95%;
+    margin-bottom: 60px;
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 60px;
+}
+
+.card {
+    background: #111111;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    padding: 42px 38px;
+    text-decoration: none;
+    color: #e5e7eb;
+    transition: all 0.2s ease;
+    max-width: 560px;
+    width: 100%;
+}
+
+.card:hover {
+    border-color: #2563eb;
+    transform: translateY(-3px);
+}
+
+.card i {
+    font-size: 46px;
+    color: #2563eb;
+    margin-bottom: 20px;
+}
+
+.card h2 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+}
+
+.card p {
+    font-size: 16px;
+    color: #cbd5e1;
+    line-height: 2;
+    margin-bottom: 24px;
+}
+
+.card button {
+    background: #2563eb;
+    border: none;
+    color: #fff;
+    padding: 14px 34px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.card button:hover {
+    background: #1d4ed8;
+}
+
+.arrow {
+    font-size: 36px;
+    color: #2563eb;
+    cursor: pointer;
+    margin-bottom: 60px;
+}
+
+.summary {
+    display: none;
+    background: #0a0a0a;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    padding: 50px 50px;
+    text-align: left;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 2.2;
+}
+
+.summary p {
+    margin-bottom: 40px;
+    color: #d1d5db;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <img src="{{ url_for('static', filename='starboard.png') }}" alt="PROJECT STARBOARD Logo" class="logo">
+
+    <div class="cards">
+        <a href="/route_planner" class="card">
+            <i class="fas fa-route"></i>
+            <h2>Route Risk Analytics</h2>
+            <p>
+                Analyze sea routes for natural disasters, collisions, marine protected and regulated zones, port congestion, piracy alerts, and regulatory compliance to ensure safe and efficient navigation.
+            </p>
+            <button>Check Routes</button>
+        </a>
+    </div>
+
+    <div class="arrow" onclick="toggleSummary()">
+        <i class="fas fa-chevron-down"></i>
+    </div>
+
+    <div class="summary" id="summary">
+        <p>
+            The platform delivers integrated maritime situational awareness by combining real-time vessel tracking with comprehensive route risk analysis. Users can monitor cargo ships and tankers worldwide, observing speed, heading, destination, vessel details, and operational status, while overlaying critical maritime hazards such as natural disasters, collisions, piracy incidents, port congestion, and compliance zones, including ECA and MPA areas. The system ensures full operational visibility across major shipping corridors, helping maritime operators make proactive, informed decisions in dynamic conditions.
+        </p>
+        <p>
+            Advanced route analysis accounts for environmental, regulatory, and hazard constraints to calculate safe and efficient paths between ports. Users can visualize disaster zones, collision-prone vessels, port congestion points, and protected ecological regions. Color-coded markers differentiate vessel types, hazard severity, and environmental compliance zones. These alerts, along with piracy activity tracking and port operational issues, provide real-time intelligence to minimize risk and optimize efficiency.
+        </p>
+        <p>
+            Real-time monitoring extends to vessel interactions with hazards and environmental regulations. Ships within disaster or collision-prone areas are highlighted with detailed AIS data, including estimated arrival, cargo type, and operational parameters. The system integrates with global disaster alert systems and port management data to deliver actionable intelligence, helping stakeholders mitigate risks, optimize scheduling, and ensure safe operations under diverse conditions.
+        </p>
+        <p>
+            Operational and strategic benefits include improved fleet management, regulatory compliance, emergency preparedness, and commercial optimization. Users can anticipate port congestion, monitor environmental compliance in ECAs and MPAs, detect piracy threats, and assess disaster impacts on shipping lanes. The platform delivers a unified operational picture that enhances route safety, reduces delays, minimizes risk, and supports decision-making for maritime stakeholders, providing unmatched situational awareness and planning capabilities.
+        </p>
+    </div>
+
+</div>
+
+<script>
+function toggleSummary() {
+    const s = document.getElementById('summary');
+    if (s.style.display === 'block') {
+        s.style.display = 'none';
+    } else {
+        s.style.display = 'block';
+        s.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+</script>
+
+</body>
+</html>

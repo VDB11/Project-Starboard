@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maritime Risk Analysis System</title>
+    <title>Starboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -92,16 +92,21 @@
         <div class="sidebar">
             <button id="sidebar-close" class="sidebar-close">✕</button>
 
-            <div class="header-container">
-                <div class="header-icon"><i class="fas fa-route"></i></div>
-                <h1>Maritime Route Risk Analysis</h1>
+            <div class="sidebar-fixed">
+                <div class="header-container">
+                    <div class="header-icon"><i class="fas fa-route"></i></div>
+                    <h1>Project Starboard</h1>
+                </div>
+
+                <div class="sb-section">
+                    <div class="sb-section-header" onclick="toggleSection('route-controls')">
+                        <span class="sb-section-title">Route Controls</span>
+                        <span class="sb-chevron" id="arrow-route-controls"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="sb-section">
-                <div class="sb-section-header" onclick="toggleSection('route-controls')">
-                    <span class="sb-section-title">Route Controls</span>
-                    <span class="sb-chevron" id="arrow-route-controls"><i class="fas fa-chevron-down"></i></span>
-                </div>
+            <div class="sidebar-scrollable">
                 <div class="sb-section-body" id="body-route-controls">
                     <div id="stops-container"></div>
                     <button id="calculate-route" disabled>Check Route & Calculate Risks</button>
@@ -109,33 +114,32 @@
                         style="display:none; margin-top:10px; background:#b71c1c;">
                         <i class="fas fa-ship-wheel"></i> View Chokepoints
                     </button>
-
                 </div>
-            </div>
 
-            <div class="loading" id="loading" style="margin-top:14px;">
-                <i class="fas fa-spinner"></i> Calculating route...
-            </div>
-
-            <label class="disaster-toggle-row" id="disaster-toggle-row" style="display:none;">
-                <input type="checkbox" id="toggle-disasters" checked>
-                <span>Show Disaster Alerts on Map</span>
-            </label>
-
-            <div class="sb-section" id="route-summary-section" style="display:none;">
-                <div class="sb-section-header" onclick="toggleSection('route-summary')">
-                    <span class="sb-section-title">Route & Risk Summary</span>
-                    <span class="sb-chevron" id="arrow-route-summary"><i class="fas fa-chevron-down"></i></span>
+                <div class="loading" id="loading" style="margin-top:14px;">
+                    <i class="fas fa-spinner"></i> Calculating route...
                 </div>
-                <div class="sb-section-body" id="body-route-summary">
-                    <div id="route-summary"></div>
-                    <div id="disaster-alerts" style="margin-top:14px;"></div>
-                </div>
-            </div>
 
-            <div id="disaster-alerts-section" style="display:none;"></div>
-            <div id="ship-alerts"></div>
-            <div id="congestion-alerts"></div>
+                <label class="disaster-toggle-row" id="disaster-toggle-row" style="display:none;">
+                    <input type="checkbox" id="toggle-disasters" checked>
+                    <span>Show Disaster Alerts on Map</span>
+                </label>
+
+                <div class="sb-section" id="route-summary-section" style="display:none;">
+                    <div class="sb-section-header" onclick="toggleSection('route-summary')">
+                        <span class="sb-section-title">Route & Risk Summary</span>
+                        <span class="sb-chevron" id="arrow-route-summary"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="sb-section-body" id="body-route-summary">
+                        <div id="route-summary"></div>
+                        <div id="disaster-alerts" style="margin-top:14px;"></div>
+                    </div>
+                </div>
+
+                <div id="disaster-alerts-section" style="display:none;"></div>
+                <div id="ship-alerts"></div>
+                <div id="congestion-alerts"></div>
+            </div>
         </div>
 
         <div class="main-content">

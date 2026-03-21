@@ -3,7 +3,7 @@ const map = L.map('map', {
     zoom: 2,
     minZoom: 2,
     maxZoom: 18,
-    worldCopyJump: false
+    worldCopyJump: true
 });
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

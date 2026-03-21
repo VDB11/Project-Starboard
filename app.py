@@ -5,18 +5,21 @@ from scripts.searoutes import (
     get_ports, search_ports,
     calculate_full_route
 )
-from scripts.disasters import get_disasters_for_route, trigger_ingest_background
+from scripts.disasters import get_disasters_for_route
 
 app = Flask(__name__)
 
 @app.route("/")
-def index():
+def home():
+    return render_template("homepage.html")
+
+@app.route("/route_planner")
+def route_planner():
     return render_template("index.html")
 
 @app.route("/api/water-bodies")
 def water_bodies():
     try:
-        trigger_ingest_background()
         return jsonify(get_water_bodies())
     except Exception as e:
         print(f"Error fetching water bodies: {e}")
