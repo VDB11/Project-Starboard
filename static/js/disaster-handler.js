@@ -88,6 +88,7 @@ function renderDisasterEvents(routeEvents, portEvents) {
             }
 
             layer.on("mouseover", function (e) {
+                document.getElementById('zoom-hint').style.display = 'block';
                 if (clickedPopupOpen) return;
                 const latlng = e.latlng || (layer.getBounds ? layer.getBounds().getCenter() : null);
                 if (!latlng) return;
@@ -99,6 +100,7 @@ function renderDisasterEvents(routeEvents, portEvents) {
             });
 
             layer.on("mouseout", function () {
+                document.getElementById('zoom-hint').style.display = 'none';
                 if (clickedPopupOpen) return;
                 if (hoverPopup) {
                     map.closePopup(hoverPopup);
@@ -107,12 +109,18 @@ function renderDisasterEvents(routeEvents, portEvents) {
             });
 
             layer.on("click", function (e) {
+                document.getElementById('zoom-hint').style.display = 'none';
                 L.DomEvent.stopPropagation(e);
                 if (hoverPopup) {
                     map.closePopup(hoverPopup);
                     hoverPopup = null;
                 }
                 clickedPopupOpen = true;
+                if (layer.getBounds) {
+                    map.fitBounds(layer.getBounds(), { padding: [40, 40], maxZoom: 7 });
+                } else {
+                    map.setView(e.latlng, Math.max(map.getZoom(), 7));
+                }
                 const latlng = e.latlng || (layer.getBounds ? layer.getBounds().getCenter() : null);
                 L.popup({ autoClose: true, closeOnClick: true, closeButton: false })
                     .setLatLng(latlng)

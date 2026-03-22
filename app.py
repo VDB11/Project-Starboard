@@ -6,6 +6,7 @@ from scripts.searoutes import (
     calculate_full_route
 )
 from scripts.disasters import get_disasters_for_route
+from scripts.chokepoints import get_chokepoints_on_route
 
 app = Flask(__name__)
 
@@ -92,6 +93,16 @@ def route():
         result = calculate_full_route(stops)
         if not result:
             return jsonify({"error": "Route calculation failed"}), 500
+
+        # Collect all route coordinates across all segments
+        all_route_coords = []
+        for seg in result["segments"]:
+            all_route_coords.extend(seg["coordinates"])
+
+        # Find chokepoints near the route
+        chokepoints = get_chokepoints_on_route(all_route_coords)
+        result["chokepoints"] = chokepoints
+
         return jsonify(result)
     except Exception as e:
         print(f"Error calculating route: {e}")

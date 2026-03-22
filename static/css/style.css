@@ -44,7 +44,14 @@ html, body {
     padding: 0 20px 20px 20px;
     overflow-y: auto;
     flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
+
+.sidebar-scrollable::-webkit-scrollbar { width: 6px; }
+.sidebar-scrollable::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scrollable::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+.sidebar-scrollable::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.35); }
 
 .sidebar.collapsed {
     display: none;
@@ -68,8 +75,8 @@ html, body {
 
 .header-container {
     text-align: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .header-icon {

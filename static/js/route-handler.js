@@ -95,6 +95,8 @@ document.getElementById('calculate-route').addEventListener('click', async funct
         const toggleRow = document.getElementById('disaster-toggle-row');
         if (toggleRow) toggleRow.style.display = 'flex';
         fetchAndRenderDisasters(data.segments);
+        renderChokepointMarkers(data.chokepoints || []);
+        renderChokepointSidebar(data.chokepoints || []);
 
     } catch (err) {
         document.getElementById('loading').style.display = 'none';
@@ -113,15 +115,15 @@ function renderRouteSummary(segments, totalLength) {
             : '';
         return `<div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.07);">
             <span style="display:inline-block; width:12px; height:4px; background:${color}; border-radius:2px; flex-shrink:0;"></span>
-            <span style="font-size:14px; color:#fff; font-weight:500;">${seg.from.port_name} <span style="color:#4facfe;">→</span> ${seg.to.port_name}</span>
+            <span style="font-size:12px; color:#fff; font-weight:500;">${seg.from.port_name} <span style="color:#4facfe;">→</span> ${seg.to.port_name}</span>
             ${distStr}
         </div>`;
     }).join('');
 
     container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0 12px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:6px;">
-            <span style="font-size:13px; color:#aaa; text-transform:uppercase; letter-spacing:0.5px;">Total Distance</span>
-            <span style="font-size:20px; font-weight:700; color:#4facfe;">${totalLength.toLocaleString()} <span style="font-size:13px; font-weight:400; color:#aaa;">nmi</span></span>
+            <span style="font-size:11px; color:#aaa; text-transform:uppercase; letter-spacing:0.5px;">Total Distance</span>
+            <span style="font-size:16px; font-weight:700; color:#4facfe;">${totalLength.toLocaleString()} <span style="font-size:11px; font-weight:400; color:#aaa;">nmi</span></span>
         </div>
         ${segRows}
     `;
@@ -191,9 +193,11 @@ function renderDisasterSidebar(routeEvents) {
     const count = routeEvents.length;
 
     container.innerHTML = `
-        <div style="display:flex; align-items:center; gap:12px; padding:12px 14px; background:rgba(255,255,255,0.06); border-left:4px solid #4facfe; border-radius:6px;">
-            <span style="font-size:22px;">⚠️</span>
-            <div style="font-size:16px; font-weight:700; color:#fff;">${count} Active Event${count > 1 ? 's' : ''} on Route</div>
+        <div style="display:flex; align-items:center; gap:10px; padding:10px 12px;
+                    background:rgba(255,255,255,0.06); border-left:4px solid #4facfe;
+                    border-radius:6px;">
+            <span style="font-size:13px;">⚠️</span>
+            <div style="font-size:12px; font-weight:700; color:#fff;">${count} Active Event${count > 1 ? 's' : ''} on Route</div>
         </div>`;
 }
 

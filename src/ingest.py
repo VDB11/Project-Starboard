@@ -28,7 +28,7 @@ def main():
     logger.info("Project root : %s", PROJECT_ROOT)
 
     try:
-        from scripts.disasters import run_ingest        
+        from scripts.ingest_gdacs import run_ingest        
 
         run_ingest()
         logger.info("Ingest completed successfully.")
