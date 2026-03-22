@@ -25,23 +25,29 @@ function renderChokepointMarkers(chokepoints) {
             popupAnchor: [0, -8]
         });
 
-        const marker = L.marker([cp.lat, cp.lon], { icon })
-            .bindPopup(buildChokepointPopup(cp), { maxWidth: 320 });
+        const marker = L.marker([cp.lat, cp.lon], { icon });
+
+        marker.bindTooltip(cp.name, {
+            permanent: false,
+            direction: 'top',
+            opacity: 0.9
+        });
+
+        marker.bindPopup(buildChokepointPopup(cp), { maxWidth: 320 });
 
         marker.addTo(map);
-        window.chokepointMarkers.push(marker);
-    });
+        window.chokepointMarkers.push(marker);    });
 }
 
 function buildChokepointPopup(cp) {
-    const total = cp.vessel_count_total || 0;
+    const total = cp.n_total || 0;
 
     const vesselTypes = [
-        { label: 'Container',     count: cp.vessel_count_container,     color: '#2196F3' },
-        { label: 'Dry Bulk',      count: cp.vessel_count_dry_bulk,      color: '#795548' },
-        { label: 'General Cargo', count: cp.vessel_count_general_cargo, color: '#4CAF50' },
-        { label: 'RoRo',          count: cp.vessel_count_roro,          color: '#9C27B0' },
-        { label: 'Tanker',        count: cp.vessel_count_tanker,        color: '#FF9800' },
+        { label: 'Container',     count: cp.n_container,     color: '#2196F3' },
+        { label: 'Dry Bulk',      count: cp.n_dry_bulk,      color: '#795548' },
+        { label: 'General Cargo', count: cp.n_general_cargo, color: '#4CAF50' },
+        { label: 'RoRo',          count: cp.n_roro,          color: '#9C27B0' },
+        { label: 'Tanker',        count: cp.n_tanker,        color: '#FF9800' },
     ];
 
     const barRows = vesselTypes.map(v => {
@@ -77,9 +83,12 @@ function buildChokepointPopup(cp) {
             <!-- Total vessels -->
             <div style="display:flex; align-items:center; justify-content:space-between;
                         padding:10px 12px; background:#fff8e1; border-radius:6px;
-                        border-left:4px solid #ff0000; margin-bottom:14px;">
+                        border-left:4px solid #ff0000; margin-bottom:4px;">
                 <span style="font-size:13px; color:#555; font-weight:600;">Total Vessels Tracked</span>
                 <span style="font-size:22px; font-weight:800; color:#cc0000;">${total.toLocaleString()}</span>
+            </div>
+            <div style="font-size:11px; color:#aaa; margin-bottom:14px; padding-left:2px;">
+                Latest available transit data · ${cp.data_date ? cp.data_date.split('-').reverse().join('-') : 'N/A'}
             </div>
 
             <!-- Breakdown bars -->
