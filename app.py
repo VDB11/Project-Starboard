@@ -7,8 +7,42 @@ from scripts.searoutes import (
 )
 from scripts.disasters import get_disasters_for_route
 from scripts.chokepoints import get_chokepoints_on_route
+from scripts.eca_mpa import fast_eca_mpa
 
 app = Flask(__name__)
+
+# Load ECA/MPA data once at startup
+print("Loading ECA/MPA data...")
+fast_eca_mpa.load_data()
+print("ECA/MPA data loaded.")
+
+
+def get_eca_mpa_geojson(intersections):
+    if not intersections:
+        return None
+
+    features = []
+    for item in intersections:
+        features.append({
+            "type": "Feature",
+            "geometry": item["geometry"],
+            "properties": {
+                "type":            item["type"],
+                "name":            item["name"],
+                "regulation":      item.get("regulation", ""),
+                "designation":     item.get("designation", ""),
+                "iucn_cat":        item.get("iucn_cat", ""),
+                "status":          item.get("status", ""),
+                "status_yr":       item.get("status_yr", ""),
+                "gov_type":        item.get("gov_type", ""),
+                "iso3":            item.get("iso3", ""),
+                "marine_area_km2": item.get("marine_area_km2", ""),
+                "no_take":         item.get("no_take", "")
+            }
+        })
+
+    return {"type": "FeatureCollection", "features": features}
+
 
 @app.route("/")
 def home():
@@ -102,6 +136,17 @@ def route():
         # Find chokepoints near the route
         chokepoints = get_chokepoints_on_route(all_route_coords)
         result["chokepoints"] = chokepoints
+
+        # Check ECA/MPA intersections
+        eca_mpa_geojson = None
+        if fast_eca_mpa.loaded and all_route_coords:
+            try:
+                intersections = fast_eca_mpa.check_route_intersections(all_route_coords)
+                eca_mpa_geojson = get_eca_mpa_geojson(intersections)
+            except Exception as e:
+                print(f"ECA/MPA check error: {e}")
+
+        result["eca_mpa_data"] = eca_mpa_geojson
 
         return jsonify(result)
     except Exception as e:

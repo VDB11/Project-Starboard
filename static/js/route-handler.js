@@ -92,11 +92,17 @@ document.getElementById('calculate-route').addEventListener('click', async funct
         }
 
         renderRouteSummary(data.segments, data.total_length);
+
         const toggleRow = document.getElementById('disaster-toggle-row');
         if (toggleRow) toggleRow.style.display = 'flex';
+
         fetchAndRenderDisasters(data.segments);
         renderChokepointMarkers(data.chokepoints || []);
         renderChokepointSidebar(data.chokepoints || []);
+
+        // ECA/MPA — delegate entirely to eca-mpa-handler.js
+        renderEcaMpaLayer(data.eca_mpa_data || null);
+        renderEcaMpaSidebar(data.eca_mpa_data || null);
 
     } catch (err) {
         document.getElementById('loading').style.display = 'none';
@@ -179,8 +185,6 @@ async function fetchAndRenderDisasters(segments) {
 function renderDisasterSidebar(routeEvents) {
     const container = document.getElementById('disaster-alerts');
     if (!container) return;
-
-    const section = document.getElementById('route-summary-section');
 
     if (routeEvents.length === 0) {
         container.innerHTML = `<div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">

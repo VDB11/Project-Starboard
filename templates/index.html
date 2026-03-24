@@ -208,6 +208,21 @@
                                 <span>Near Port Event</span>
                             </div>
                         </div>
+                        <div class="legend-section">
+                            <h5>Protected Zones</h5>
+                            <div class="legend-item">
+                                <div style="width:14px; height:14px; border-radius:3px;
+                                            background:rgba(255,215,0,0.25); border:2px solid #B8860B;
+                                            margin-right:10px; flex-shrink:0;"></div>
+                                <span>ECA (Emission Control Area)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div style="width:14px; height:14px; border-radius:3px;
+                                            background:rgba(255,107,53,0.25); border:2px solid #CC4400;
+                                            margin-right:10px; flex-shrink:0;"></div>
+                                <span>MPA (Marine Protected Area)</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="legend-toggle">
                         <button id="legend-toggle-btn" title="Hide Legend">
@@ -225,6 +240,7 @@
     <script src="{{ url_for('static', filename='js/dropdown-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/disaster-handler.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chokepoint-handler.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/eca-mpa-handler.js') }}"></script>
     <script src="{{ url_for('static', filename='js/route-handler.js') }}"></script>
     <script>
         function toggleSection(id) {
