@@ -54,16 +54,9 @@ function _buildEcaMpaPopup(props) {
         rows += _ecaRow('📋', 'Regulation',  props.regulation);
     } else {
         rows += _ecaRow('🏛️', 'Designation', props.designation);
-        rows += _ecaRow('🔰', 'IUCN Category', props.iucn_cat);
-        rows += _ecaRow('📌', 'Status',      props.status);
         rows += _ecaRow('📅', 'Year Designated', props.status_yr && props.status_yr !== '0' ? props.status_yr : '');
         rows += _ecaRow('🌍', 'Country',     props.iso3);
-        rows += _ecaRow('🏛️', 'Governance',  props.gov_type);
         rows += _ecaRow('📐', 'Marine Area', props.marine_area_km2 ? `${parseFloat(props.marine_area_km2).toLocaleString()} km²` : '');
-        rows += _ecaRow('🚫', 'No-Take Zone', props.no_take === 'All' ? 'Yes — full no-take zone'
-                                             : props.no_take === 'Part' ? 'Partial no-take zone'
-                                             : props.no_take === 'None' ? 'No restrictions'
-                                             : props.no_take);
     }
 
     return `

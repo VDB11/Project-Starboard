@@ -125,6 +125,11 @@
                     <span>Show Disaster Alerts</span>
                 </label>
 
+                <label class="disaster-toggle-row" id="eca-mpa-toggle-row" style="display:none;">
+                    <input type="checkbox" id="toggle-eca-mpa" checked>
+                    <span>Show Protected Regions</span>
+                </label>
+
                 <div class="sb-section" id="route-summary-section" style="display:none;">
                     <div class="sb-section-header" onclick="toggleSection('route-summary')">
                         <span class="sb-section-title">Route & Risk Summary</span>
@@ -253,6 +258,10 @@
 
         document.getElementById('toggle-disasters').addEventListener('change', function () {
             toggleDisasterLayers(this.checked);
+
+        document.getElementById('toggle-eca-mpa').addEventListener('change', function () {
+            toggleEcaMpaLayer(this.checked);
+        });
         });
     </script>
 </body>

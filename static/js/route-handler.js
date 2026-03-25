@@ -96,6 +96,9 @@ document.getElementById('calculate-route').addEventListener('click', async funct
         const toggleRow = document.getElementById('disaster-toggle-row');
         if (toggleRow) toggleRow.style.display = 'flex';
 
+        const ecaMpaToggleRow = document.getElementById('eca-mpa-toggle-row');
+        if (ecaMpaToggleRow) ecaMpaToggleRow.style.display = 'flex';
+
         fetchAndRenderDisasters(data.segments);
         renderChokepointMarkers(data.chokepoints || []);
         renderChokepointSidebar(data.chokepoints || []);
