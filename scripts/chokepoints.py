@@ -20,46 +20,87 @@ DB_CONFIG = {
 CHOKEPOINT_PROXIMITY_NMI = 100
 ARCGIS_URL = "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Chokepoints_Data/FeatureServer/0/query"
 
+# Hardcoded lat/lon for each chokepoint by portname (lowercase)
+CHOKEPOINT_COORDS = {
+    "suez canal":           (30.5933, 32.4369),
+    "panama canal":         (9.1205, -79.7672),
+    "bosporus strait":      (41.1167, 29.0833),
+    "bab el-mandeb strait": (12.5833, 43.3333),
+    "malacca strait":       (2.5000, 101.5000),
+    "strait of hormuz":     (26.5667, 56.2500),
+    "cape of good hope":    (-34.3568, 18.4734),
+    "gibraltar strait":     (35.9667, -5.6000),
+    "dover strait":         (51.0000, 1.5000),
+    "oresund strait":       (55.8333, 12.6667),
+    "taiwan strait":        (24.5000, 119.5000),
+    "korea strait":         (34.6667, 129.0000),
+    "tsugaru strait":       (41.5000, 140.8333),
+    "luzon strait":         (20.0000, 121.5000),
+    "lombok strait":        (-8.7667, 115.7333),
+    "ombai strait":         (-8.5000, 125.0000),
+    "bohai strait":         (38.0000, 120.8333),
+    "torres strait":        (-10.5833, 141.8333),
+    "sunda strait":         (-5.9333, 105.8667),
+    "makassar strait":      (-2.0000, 117.5000),
+    "magellan strait":      (-53.7000, -70.9500),
+    "yucatan channel":      (21.5833, -85.7500),
+    "windward passage":     (20.0000, -73.5000),
+    "mona passage":         (18.0833, -67.9167),
+    "balabac strait":       (7.5667, 116.9333),
+    "bering strait":        (65.7500, -168.9167),
+    "mindoro strait":       (12.5000, 120.5000),
+    "kerch strait":         (45.3333, 36.6167),
+}
+
 def get_conn():
     return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
 
 def ensure_columns():
     cols = {
-        "n_container":           "INTEGER",
-        "n_dry_bulk":            "INTEGER",
-        "n_general_cargo":       "INTEGER",
-        "n_roro":                "INTEGER",
-        "n_tanker":              "INTEGER",
-        "n_cargo":               "INTEGER",
-        "n_total":               "INTEGER",
-        "capacity_container":    "BIGINT",
-        "capacity_dry_bulk":     "BIGINT",
-        "capacity_general_cargo":"BIGINT",
-        "capacity_roro":         "BIGINT",
-        "capacity_tanker":       "BIGINT",
-        "capacity_cargo":        "BIGINT",
-        "capacity":              "BIGINT",
-        "data_date":             "DATE",
-        "inserted_at":           "TIMESTAMPTZ",
-        "last_api_check":        "DATE",
+        "n_container":            "INTEGER",
+        "n_dry_bulk":             "INTEGER",
+        "n_general_cargo":        "INTEGER",
+        "n_roro":                 "INTEGER",
+        "n_tanker":               "INTEGER",
+        "n_cargo":                "INTEGER",
+        "n_total":                "INTEGER",
+        "capacity_container":     "BIGINT",
+        "capacity_dry_bulk":      "BIGINT",
+        "capacity_general_cargo": "BIGINT",
+        "capacity_roro":          "BIGINT",
+        "capacity_tanker":        "BIGINT",
+        "capacity_cargo":         "BIGINT",
+        "capacity":               "BIGINT",
+        "data_date":              "DATE",
+        "inserted_at":            "TIMESTAMPTZ",
     }
     with get_conn() as conn:
         with conn.cursor() as cur:
             for col, dtype in cols.items():
                 cur.execute(f"ALTER TABLE public.maritime_chokepoints ADD COLUMN IF NOT EXISTS {col} {dtype}")
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS public.maritime_chokepoints_meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
         conn.commit()
 
 def get_last_api_check():
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT MAX(last_api_check) AS d FROM public.maritime_chokepoints")
+            cur.execute("SELECT value FROM public.maritime_chokepoints_meta WHERE key = 'last_api_check'")
             row = cur.fetchone()
-            return row["d"] if row else None
+            return date.fromisoformat(row["value"]) if row else None
 
 def set_last_api_check(check_date):
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE public.maritime_chokepoints SET last_api_check = %s", (check_date,))
+            cur.execute("""
+                INSERT INTO public.maritime_chokepoints_meta (key, value)
+                VALUES ('last_api_check', %s)
+                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+            """, (str(check_date),))
         conn.commit()
 
 def get_latest_api_date():
@@ -83,43 +124,45 @@ def get_last_ingested_date():
             row = cur.fetchone()
             return row["d"] if row else None
 
-def fetch_transit_for_date(date_str):
+def fetch_transit_for_date(target_date):
+    """Fetch all records and filter to target_date to avoid ArcGIS date filter quirks."""
     params = {
         "f": "json",
-        "where": f"date = DATE '{date_str}'",
+        "where": "1=1",
         "outFields": "*",
         "returnGeometry": "false",
         "resultRecordCount": 1000,
-        "resultOffset": 0
+        "orderByFields": "date DESC"
     }
     r = requests.get(ARCGIS_URL, params=params, timeout=30)
     r.raise_for_status()
-    return [f["attributes"] for f in r.json().get("features", [])]
-
-def get_base_chokepoints():
-    with get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT DISTINCT ON (name) id, name, lat, lon
-                FROM public.maritime_chokepoints
-                WHERE data_date IS NULL
-                ORDER BY name
-            """)
-            return {row["name"].lower(): dict(row) for row in cur.fetchall()}
+    results = []
+    for f in r.json().get("features", []):
+        attrs = f["attributes"]
+        ts = attrs.get("date")
+        if ts:
+            rec_date = datetime.fromtimestamp(ts / 1000, tz=timezone.utc).date()
+            if rec_date == target_date:
+                results.append(attrs)
+    return results
 
 def ingest_transit_data(records, data_date):
-    base = get_base_chokepoints()
     now = datetime.now(tz=timezone.utc)
 
     with get_conn() as conn:
         with conn.cursor() as cur:
-            for rec in records:
-                portname = rec.get("portname", "").strip().lower()
-                base_cp = base.get(portname)
-                if not base_cp:
-                    print(f"No DB match for: {portname}")
-                    continue
+            cur.execute("DELETE FROM public.maritime_chokepoints WHERE data_date = %s", (data_date,))
+        conn.commit()
 
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            for rec in records:
+                portname = rec.get("portname", "").strip()
+                coords = CHOKEPOINT_COORDS.get(portname.lower())
+                if not coords:
+                    print(f"No coords for: {portname}")
+                    continue
+                lat, lon = coords
                 cur.execute("""
                     INSERT INTO public.maritime_chokepoints (
                         id, name, lat, lon,
@@ -127,20 +170,20 @@ def ingest_transit_data(records, data_date):
                         n_cargo, n_total,
                         capacity_container, capacity_dry_bulk, capacity_general_cargo,
                         capacity_roro, capacity_tanker, capacity_cargo, capacity,
-                        data_date, inserted_at, last_api_check
+                        data_date, inserted_at
                     ) VALUES (
                         %s, %s, %s, %s,
                         %s, %s, %s, %s, %s,
                         %s, %s,
                         %s, %s, %s,
                         %s, %s, %s, %s,
-                        %s, %s, %s
+                        %s, %s
                     )
                 """, (
                     str(uuid.uuid1()),
-                    base_cp["name"],
-                    base_cp["lat"],
-                    base_cp["lon"],
+                    portname,
+                    lat,
+                    lon,
                     rec.get("n_container"),
                     rec.get("n_dry_bulk"),
                     rec.get("n_general_cargo"),
@@ -157,9 +200,8 @@ def ingest_transit_data(records, data_date):
                     rec.get("capacity"),
                     data_date,
                     now,
-                    date.today()
                 ))
-                print(f"Inserted: {base_cp['name']} for {data_date}")
+                print(f"Inserted: {portname} for {data_date}")
         conn.commit()
 
 def refresh_if_needed():
@@ -181,12 +223,12 @@ def refresh_if_needed():
         return
 
     print(f"New data available: {api_date}, ingesting...")
-    records = fetch_transit_for_date(str(api_date))
+    records = fetch_transit_for_date(api_date)
 
     if not records:
         for days_back in range(1, 5):
             fallback = api_date - timedelta(days=days_back)
-            records = fetch_transit_for_date(str(fallback))
+            records = fetch_transit_for_date(fallback)
             if records:
                 api_date = fallback
                 print(f"Fell back to {api_date}")
@@ -194,6 +236,7 @@ def refresh_if_needed():
 
     if records:
         ingest_transit_data(records, api_date)
+        set_last_api_check(today)
         print(f"Ingested {len(records)} records for {api_date}")
     else:
         set_last_api_check(today)
@@ -212,7 +255,7 @@ def get_all_chokepoints():
                     data_date
                 FROM public.maritime_chokepoints
                 WHERE data_date IS NOT NULL
-                ORDER BY name, inserted_at DESC
+                ORDER BY name, data_date DESC, inserted_at DESC NULLS LAST
             """)
             return [dict(r) for r in cur.fetchall()]
 
@@ -253,26 +296,26 @@ def get_chokepoints_on_route(route_coords, threshold_nmi=CHOKEPOINT_PROXIMITY_NM
         dist = _min_distance_to_route_nmi(cp["lat"], cp["lon"], route_coords)
         if dist <= threshold_nmi:
             hits.append({
-                "id":                        str(cp["id"]),
-                "name":                      cp["name"],
-                "lat":                       cp["lat"],
-                "lon":                       cp["lon"],
-                "distance_nmi":              round(dist, 1),
-                "data_date":                 str(cp["data_date"]),
-                "n_container":               cp["n_container"],
-                "n_dry_bulk":                cp["n_dry_bulk"],
-                "n_general_cargo":           cp["n_general_cargo"],
-                "n_roro":                    cp["n_roro"],
-                "n_tanker":                  cp["n_tanker"],
-                "n_cargo":                   cp["n_cargo"],
-                "n_total":                   cp["n_total"],
-                "capacity_container":        cp["capacity_container"],
-                "capacity_dry_bulk":         cp["capacity_dry_bulk"],
-                "capacity_general_cargo":    cp["capacity_general_cargo"],
-                "capacity_roro":             cp["capacity_roro"],
-                "capacity_tanker":           cp["capacity_tanker"],
-                "capacity_cargo":            cp["capacity_cargo"],
-                "capacity":                  cp["capacity"],
+                "id":                     str(cp["id"]),
+                "name":                   cp["name"],
+                "lat":                    cp["lat"],
+                "lon":                    cp["lon"],
+                "distance_nmi":           round(dist, 1),
+                "data_date":              str(cp["data_date"]),
+                "n_container":            cp["n_container"],
+                "n_dry_bulk":             cp["n_dry_bulk"],
+                "n_general_cargo":        cp["n_general_cargo"],
+                "n_roro":                 cp["n_roro"],
+                "n_tanker":               cp["n_tanker"],
+                "n_cargo":                cp["n_cargo"],
+                "n_total":                cp["n_total"],
+                "capacity_container":     cp["capacity_container"],
+                "capacity_dry_bulk":      cp["capacity_dry_bulk"],
+                "capacity_general_cargo": cp["capacity_general_cargo"],
+                "capacity_roro":          cp["capacity_roro"],
+                "capacity_tanker":        cp["capacity_tanker"],
+                "capacity_cargo":         cp["capacity_cargo"],
+                "capacity":               cp["capacity"],
             })
             print(f"Chokepoint HIT: {cp['name']} ({round(dist, 1)} nmi from route)")
         else:

@@ -20,4 +20,6 @@ SELECT *, ST_GeomFromWKB(geom_wkb) AS geom
 FROM read_parquet('{mpa_file}')
 """)
 
+con.execute("CREATE INDEX eca_mpa_spatial_idx ON eca_mpa USING RTREE (geom);")
+
 print(f"Database built and stored at: {db_file}")
